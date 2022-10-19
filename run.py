@@ -1,10 +1,14 @@
 # Importing the libraries
-from sys import stdin, stdout
+import sys
 import numpy as np
 import tensorflow as tf
 import os
+import logging
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # the number 2 here means that the program will only print out error messages
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # this line is used to disable GPU
 
 # Pre processing
 # __________________________________________________
@@ -39,8 +43,8 @@ def main():
     model = tf.keras.models.load_model('saved_model.h5')
 
     # Loads in test data from stdin as requested. but it's not working. How do we communicate with the marker?
-    test_data = np.loadtxt(stdin).reshape(-1, 2352)
-
+    test_data = np.loadtxt(sys.stdin.read()).reshape(-1, 2352)
+    # sys.stdin
     # Preprocessing function
     test_data_clean = np.array(removeRedundantFeatures(test_data, memory_list))
 
@@ -52,7 +56,7 @@ def main():
 
     # Write output to communicate with the marker as concatenated string
     answer = ''.join(map(str, CLASSES))
-    stdout.write(str(answer))
+    sys.stdout.write(str(answer))
 
 if __name__ == '__main__':
     main()
