@@ -1,14 +1,13 @@
 # Importing the libraries
-import sys
 import numpy as np
 import tensorflow as tf
 import os
-import logging
+import sys
 
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # the number 2 here means that the program will only print out error messages
+# parse command line
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # this line is used to disable GPU
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 # Pre processing
 # __________________________________________________
@@ -41,22 +40,35 @@ def main():
 
     # Loads our saved model from folder
     model = tf.keras.models.load_model('saved_model.h5')
+    # parse command line 
+    sys.stdin = open('input.txt', 'r') # This line replaces the standard input with the input.txt file
+    
 
-    # Loads in test data from stdin as requested. but it's not working. How do we communicate with the marker?
-    test_data = np.loadtxt(sys.stdin.read()).reshape(-1, 2352)
-    # sys.stdin
+    # The line belowLoads in test data from stdin, but using a hardcoded filename input.txt
+    # Then reads in the test data from stdin=>input.txt file, 
+    # And reshapes the data to be 2352 columns wide and as many rows as needed to fit the data
+    test_data = np.loadtxt(sys.stdin).reshape(-1, 2352) # test data is numpy array of 2352 columns and as many rows as needed to fit the data
+    
+    sys.stdin.close() # close the file
+
     # Preprocessing function
-    test_data_clean = np.array(removeRedundantFeatures(test_data, memory_list))
+    # Line below creates test_data_clean as a numpy array of 1917 columns (number of features in the model) 
+    # and as many rows as needed to fit the data in the input file's number of predictions (3 in this case) 
+    
+    test_data_clean = np.array(removeRedundantFeatures(test_data, memory_list)) 
+    
 
     for data_point in test_data_clean:
-        data_point = data_point.reshape(1, 1917)
+        data_point = data_point.reshape(1, 1917) # Reshapes each data point to be 1 row and 1917 columns (supposed to be 0 and 1917 because it's meant to be a 1D array)
         # Make predictions, store in list
         CLASSES.append(np.argmax(model.predict(data_point)))
 
 
     # Write output to communicate with the marker as concatenated string
     answer = ''.join(map(str, CLASSES))
+    sys.stdout = open('output.txt', 'w') # This line replaces the standard output with the output.txt file
     sys.stdout.write(str(answer))
+    sys.stdout.close() # close the file
 
 if __name__ == '__main__':
     main()
