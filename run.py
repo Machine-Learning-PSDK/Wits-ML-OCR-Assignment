@@ -1,4 +1,5 @@
 # Importing the libraries
+from pydoc import doc
 import numpy as np
 import tensorflow as tf
 import os
@@ -35,42 +36,32 @@ def main():
             memory_list.append(float(line.strip()))
 
     CLASSES = []
+    ANSWER = 0
     # ___________________________________ preprocessing
 
 
     # Loads our saved model from folder
     model = tf.keras.models.load_model('saved_model.h5')
     
-    
-    # parse command line 
-    # This line replaces the standard input with the input.txt file
-    
+    sys.stdin = open('input.txt', 'r') # uncomment for testing
+    # sys.stdin = open(0) # This line opens the standard input stream as a file #  uncomment for production
+    file_input = sys.stdin.read() # This line reads the standard input stream as a string
 
-    # The line belowLoads in test data from stdin, but using a hardcoded filename input.txt
-    # Then reads in the test data from stdin=>input.txt file, 
-    # And reshapes the data to be 2352 columns wide and as many rows as needed to fit the data
-    test_data = np.loadtxt(sys.stdin).reshape(-1, 2352) # test data is numpy array of 2352 columns and as many rows as needed to fit the data
     
+    # test_data = np.fromstring(input_line, sep=' ').reshape(-1, 2352) # test data is numpy array of 2352 columns and as many rows as needed to fit the data
+    test_data = np.fromstring(file_input, sep=' ').reshape(1, 2352) # test data is numpy array of 2352 columns and as many rows as needed to fit the data
     sys.stdin.close() # close the file
 
     # Preprocessing function
-    # Line below creates test_data_clean as a numpy array of 1917 columns (number of features in the model) 
-    # and as many rows as needed to fit the data in the input file's number of predictions (3 in this case) 
-    
-    test_data_clean = np.array(removeRedundantFeatures(test_data, memory_list)) 
+    # Remove redundant rows from test_data, reduce size from 2352 to 1917
+    test_data_clean = np.array(removeRedundantFeatures(test_data, memory_list))
     
 
-    for data_point in test_data_clean:
-        data_point = data_point.reshape(1, 1917) # Reshapes each data point to be 1 row and 1917 columns (supposed to be 0 and 1917 because it's meant to be a 1D array)
-        # Make predictions, store in list
-        CLASSES.append(np.argmax(model.predict(data_point)))
-
-
-    # Write output to communicate with the marker as concatenated string
-    answer = ''.join(map(str, CLASSES))
-    sys.stdout = open('output.txt', 'w') # This line replaces the standard output with the output.txt file
-    sys.stdout.write(str(answer))
-    sys.stdout.close() # close the file
+    test_data_clean= test_data_clean.reshape(1,1917) # Reshapes each data point to be 1 row and 1917 columns (supposed to be 0 and 1917 because it's meant to be a 1D array)
+        
+    ANSWER = np.argmax(model.predict(test_data_clean), axis=-1) # Predicts the class of the test data, and returns the index of the highest probability class)))
+    # print(ANSWER) # Prints the class of the test
+    sys.stdout.write(str(ANSWER[0])) # Writes the class of the test to stdout
 
 if __name__ == '__main__':
     main()
