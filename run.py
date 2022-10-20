@@ -40,9 +40,10 @@ def main():
 
     # Loads our saved model from folder
     model = tf.keras.models.load_model('saved_model.h5')
-    test_batch_filename= input("Please input filename containing data to be classified, 1 row per label returned: ")
+    
+    
     # parse command line 
-    sys.stdin = open(test_batch_filename, 'r') # This line replaces the standard input with the input.txt file
+    # This line replaces the standard input with the input.txt file
     
 
     # The line belowLoads in test data from stdin, but using a hardcoded filename input.txt
