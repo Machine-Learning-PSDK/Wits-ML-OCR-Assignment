@@ -1,14 +1,28 @@
 # Importing the libraries
-from pydoc import doc
+import logging
+import os
+from tabnanny import verbose
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0' # 0 means no error, 1 means error, 2 means warning, 3 means info, 4 means debug. So 3 means we only want to see info, warning, error and critical messages, 2 means we only want to see warning, error and critical messages, etc.
 import numpy as np
 import tensorflow as tf
-import os
 import sys
 
 
 # parse command line
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # this line is required to call the main() function
+
+# hide logs from tensorflow and keras: https://stackoverflow.com/questions/35911252/disable-tensorflow-debugging-information
+def set_tf_loglevel(level):
+    if level >= logging.FATAL:
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    if level >= logging.ERROR:
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    if level >= logging.WARNING:
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+    else:
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
+    logging.getLogger('tensorflow').setLevel(level)
 
 # Pre processing
 # __________________________________________________
@@ -30,6 +44,7 @@ def removeRedundantFeatures(dataset_input, memory_list):
     return relevant_data
 
 def main():
+    # set_tf_loglevel(logging.FATAL)
     memory_list = []
     with open("memorylist.txt", "r") as f:
         for line in f:
@@ -43,8 +58,8 @@ def main():
     # Loads our saved model from folder
     model = tf.keras.models.load_model('saved_model.h5')
     
-    sys.stdin = open('input.txt', 'r') # uncomment for testing
-    # sys.stdin = open(0) # This line opens the standard input stream as a file #  uncomment for production
+    # sys.stdin = open('input.txt', 'r') # uncomment for testing
+    sys.stdin = open(0) # This line opens the standard input stream as a file #  uncomment for production
     file_input = sys.stdin.read() # This line reads the standard input stream as a string
 
     
@@ -59,7 +74,7 @@ def main():
 
     test_data_clean= test_data_clean.reshape(1,1917) # Reshapes each data point to be 1 row and 1917 columns (supposed to be 0 and 1917 because it's meant to be a 1D array)
         
-    ANSWER = np.argmax(model.predict(test_data_clean), axis=-1) # Predicts the class of the test data, and returns the index of the highest probability class)))
+    ANSWER = np.argmax(model.predict(test_data_clean, verbose=0), axis=-1) # Predicts the class of the test data, and returns the index of the highest probability class)))
     # print(ANSWER) # Prints the class of the test
     sys.stdout.write(str(ANSWER[0])) # Writes the class of the test to stdout
 
